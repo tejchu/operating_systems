@@ -1,0 +1,54 @@
+shared state = enum {empty, female, male}
+shared unsigned male_count = 0;
+shared unsigned female_count = 0;
+sepaphore_t mutex = 1;
+semaphore_t male = 0 # models that males have to wait
+semaphore_t female = 0 # models that females have to wait
+
+void female()
+{
+    down(&mutex){
+        if(male_count > 0 || female_count == 3){
+            up(&mutex);
+            down(&female);
+            down(&mutex);
+        }
+        female_count++;
+        up(&mutex);
+        /* USE BATHROOM */
+        down(&mutex);
+        if(female_count == 3){
+            up(&female);
+        }
+        female_count--;
+        up(&mutex);
+    }
+    down(&female);
+}
+
+void male(){
+    down(&male);
+
+}
+
+semaph empty = 1
+
+//create struct gender{
+    int count;
+    mutex;
+    limit;
+}gender_t
+
+create genders mutex = 1
+void go()
+down the gender mutex
+gender count ++
+if count 1 down empty
+up gender mutex
+down glimit
+use bathroom
+up glimit
+down gmutex
+g count --
+if gcount 0
+up empty

@@ -1,0 +1,29 @@
+./prisoner                      
+method random_drawer    0/100 wins = 0.00 %     146.985 ms
+method random_global    0/100 wins = 0.00 %     155.992 ms
+method strategy_drawer  40/100 wins = 40.00 %   139.526 ms
+method strategy_global  36/100 wins = 36.00 %   153.201 ms
+
+./prisoner -s 5 -n 9000
+method random_drawer    0/9000 wins = 0.00 %    13596.339 ms
+method random_global    0/9000 wins = 0.00 %    12633.448 ms
+method strategy_drawer  2757/9000 wins = 30.63 %        12367.164 ms
+method strategy_global  2849/9000 wins = 31.66 %        11718.381 ms
+
+From these sample times we can observe multiple things.
+In the first time samples, we can see that using a global lock (mutex) 
+will produce bigger times, than the methods that use individual drawer 
+mutex's. This is because using a separate lock for each drawer will 
+allow multiple prisoners (threads) to open different dawers at the same 
+time, which will minimize overall time spent searching for their number.
+We can also observe that the random methods that do not use strategy
+are slower than the others, although this is because the random methods
+have extra code where a random array is generated, extra time is spent 
+because the chances of a prisoner (thread) not finiding their number before 
+opening (looping) all 50 drawers are bigger than in the strategy methods.
+
+In the second time samples we can see that the global locks are doing
+better timewise than the drawer ones when we increase the number of games run,
+this might be because the mutex queue in the OS is limited so after some number 
+of games no efficiency is reached even though we use individual locks. Additionally, 
+each mutex is a system call, which is pretty expensive time- and efficiencywise. 

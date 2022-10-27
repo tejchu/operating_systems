@@ -1,0 +1,51 @@
+
+So in order to explain to the freshie what goes wrong here
+we need to know what is happening. So when we call main we 
+allocate memory on the stack, we create a stack frame. In main 
+we call another function => strdup(), for which we create another
+stack frame with all its automatic variables. In this case we have 
+len and d. Then this function returns a pointer to the copied 
+string, and after that the stack frame of strdup() is concidered 
+as disposed = our compailer will think that that memory of the stack
+is unallocated and therefore it can be reused.
+Since we return the pointer back to main, we then call puts to print
+the string it points to, therefore another stack frame is created for
+the puts function. Here is where the unexpected outputs come.
+Since the compailer now knows that our strdup function finished and
+that it can reuse the memory we previously allocated for it, it will
+probably allocate the puts function stack fram in its place or at least 
+some of it. Going back to our pointer which was pointing to a string
+in the strdup stackframe which is now overwritten by the puts stackframe,
+we realize already that this is a problem. Our pointer has been copied,
+but the string it was pointing to has been disposed/overwritten by other
+random information that the next function needed. Therefore we create a
+"memory leak" and putc returns some of its own random information it stored
+on the stack. 
+This could be easily avoided by dynamically allocating d on the heap, where
+its contents would be safely stored far away from the stack where they
+can be easily overwritten, and it should be a standard practice!
+
+
+
+
+1 #include <string.h>
+2 #include <stdio.h>
+3 #include <stdlib.h>
+4
+5 char* strdup(const char *s)
+6 {
+7 size_t len = strlen(s);
+8 char d[len+1];
+9 return strncpy(d, s, len+1);
+10 }
+11
+12 int main(int argc, char *argv[])
+13 {
+14 int i;
+15
+16 for (i = 1; i < argc; i++) {
+17 (void) puts(strdup(argv[i]));
+18 }
+19
+20 return EXIT_SUCCESS;
+21 }
